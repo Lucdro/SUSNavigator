@@ -1,16 +1,18 @@
 import re
 #
-TOKENSDESCRIPTION = {
-    ('word-element',1),
-    ('tagStart-element',2),
-    ('tagEnd-element',3),
-    ('javascript-element',4),
-}
+TOKENSDESCRIPTION = [
+    ('DOCTYPE',1),
+    ('start tag',2),
+    ('end tag',3),
+    ('comment',4),
+    ('character',5),
+    ('end-of-file',6)
+]
 def GetTokenDescription(value: int) -> str:
     for description in TOKENSDESCRIPTION:
         if description[1] == value:
             return description[0] 
-    return -1
+    return ''
 def GetTokenValue(name: str) -> int:
     for description in TOKENSDESCRIPTION:
         if description[0] == name:
@@ -18,7 +20,7 @@ def GetTokenValue(name: str) -> int:
     return -1
     
 #   Other tags will be converted to div
-RECOGNIZEDTAGS = {
+RECOGNIZEDTAGS = [
     ('html',True),
     ('head',True),
     ('body',True),
@@ -34,7 +36,7 @@ RECOGNIZEDTAGS = {
     ('h6',True),
     ('span',True),
     ('img',True),
-}
+]
 def IsRecognizedTag(name: str) -> bool:
     for tag in RECOGNIZEDTAGS:
         if tag[0] == name:
@@ -49,18 +51,21 @@ def CanHaveChild(name: str) -> bool:
 #   Tokens => dic(tokendescription,token,Dic(props)) => '' if dont have 
 class Tokenizer:
     inputStream = ''
-    tokenList = []
+    __tokenList = []
 
     def __init__(self , html: str) -> None:
+        self.AlterInput(html)
+        
+    def AlterInput(self, html: str) -> None:
         self.inputStream = html.strip()
         self.GenerateTokenList()
-        
+
     def GenerateTokenList(self) -> None:
         index = 0
-        tokenDescWord = GetTokenValue('word-element')
-        tokenDescTagStart = GetTokenValue('tagStart-element')
-        tokenDescTagEnd = GetTokenValue('tagEnd-element')
-        
+        tokenDescWord = GetTokenValue('character')
+        tokenDescTagStart = GetTokenValue('start tag')
+        tokenDescTagEnd = GetTokenValue('end tag')
+        self.__tokenList = []
         while(index < len(self.inputStream)):
             c = self.inputStream[index]
             #skip this iteration
@@ -78,10 +83,11 @@ class Tokenizer:
                     if self.inputStream[index] == '>':
                         break
                     index += 1
-                tokenName = re.search(r'</?[a-zA-Z0-9_]+',token).group()
+                tokenName = re.search(r'</?[a-zA-Z0-9_]+',token)
+                tokenName = '<' if tokenName == None else tokenName.group()
                 tokenName += '>'
-                props = Token.GetProps(token)
-                self.tokenList.append((tokenType,tokenName,props))
+                props = self.GetProps(token)
+                self.AppendToken((tokenType,tokenName,props))
                 index += 1
                 continue
             #search the next tag to end the word
@@ -91,31 +97,35 @@ class Tokenizer:
                         break
                     token += self.inputStream[index]
                     index += 1
-            self.tokenList.append((tokenDescWord,token,''))
+            self.AppendToken((tokenDescWord,token,''))
     
-    def AddToken(index: int, element :str):
-        pass
+    def AppendToken(self, token: tuple) -> None:
+        self.__tokenList.append(token)
 
-    def RemoveToken(index: int):
-        pass
+    def AddToken(self, index: int, token: tuple) -> None:
+        self.__tokenList.insert(index, token)
+
+    def RemoveToken(self, index: int) -> None:
+        self.__tokenList.pop(index)
     
     def PrintList(self) -> None:
-        for token in self.tokenList:
+        for token in self.__tokenList:
             print(f'\nType: {GetTokenDescription(token[0])}\nName: {token[1]}\nProps: {token[2]}')
 
-class Token:
-    def GetProps(tag: str) -> dict:
+    def GetProps(self, tag: str) -> dict[str,str]:
         propsList = re.findall(r'\s+[a-zA-Z0-9_]+=[\"|\']\s*[a-zA-Z0-9_;:]*[\"|\']',tag)
         propsDict = {}
         for prop in propsList:
-            prop = prop.strip()
-            name = re.search(r'[a-zA-Z0-9_]+=[\"|\']',prop).group()
-            value = re.search(r'=[\"|\'][a-zA-Z0-9_:;]+[\"|\']',prop).group()
-            if name != None:
+            name = re.search(r'[a-zA-Z0-9_]+=[\"|\']',prop)
+            name = '' if name == None else name.group()
+            value = re.search(r'=[\"|\'][a-zA-Z0-9_:;]+[\"|\']',prop)
+            value = '' if value == None else value.group()
+            if name != '':
                 name = name[0:len(name)-2]
                 value = '' if value == None else value[2:len(value)-1]
                 propsDict[name] = value
         return propsDict
+    
     
 def TreeConstruction(tokenList: list):
     pass
