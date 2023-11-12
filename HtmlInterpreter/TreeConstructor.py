@@ -8,7 +8,7 @@ class TreeConstructor:
     tokenTagEnd: int = TokenDescription.GetTokenValue('end tag')
     tokenSelfClsTag: int = TokenDescription.GetTokenValue('self closing tag')
     __treeBuffer: list[Tree] = []
-    __tree: Tree = Tree('root')
+    __tree: Tree = Tree('root', 0)
     __currentTree: Tree = __tree
     def __init__(self) -> None:
         pass
@@ -17,13 +17,13 @@ class TreeConstructor:
         if token[0] == self.tokenTagStart:
             if Tags.CanHaveChild(token[1]):
                 self.__treeBuffer.append(self.__currentTree)
-                self.__currentTree = self.__currentTree.AppendChild(Tree(token[1],[],token[2]))
+                self.__currentTree = self.__currentTree.AppendChild(Tree(token[1],token[0],[],token[2]))
                 #self.__currentTree.Print()
             else:
-                self.__currentTree.AppendChild(Tree(token[1],[],token[2]))
+                self.__currentTree.AppendChild(Tree(token[1],token[0],[],token[2]))
                 #temp.Print()
         elif token[0] == self.tokenWord:
-            self.__currentTree.AppendChild(Tree(token[1],[],{}))
+            self.__currentTree.AppendChild(Tree(token[1],token[0],[],{}))
             #temp.Print()
         elif token[0] == self.tokenTagEnd:
             if self.__currentTree.GetValue()[1:len(self.__currentTree.GetValue())-1] == token[1][2:len(token[1])-1]:
@@ -32,7 +32,7 @@ class TreeConstructor:
             else:
                 raise SyntaxError(f'Tag:{token[1]} was never opened')
         elif token[0] == self.tokenSelfClsTag:
-            self.__currentTree.AppendChild(Tree(token[1],[],token[2]))
+            self.__currentTree.AppendChild(Tree(token[1],token[0],[],token[2]))
             #temp.Print()
         #self.__currentTree.Print()
     

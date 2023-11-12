@@ -1,30 +1,28 @@
+from HtmlInterpreter.DomCreator import DomCreator
 from HtmlInterpreter.TreeConstructor import TreeConstructor
 from HtmlInterpreter.Tokenizer import Tokenizer
-from HtmlInterpreter.Dom import Dom
+from HtmlInterpreter.DomCreator import DomCreator
 from HtmlInterpreter.Tree import Tree
+from typing import Any, Self
 
 class Interpreter:
-    def Parse(self, html: str) -> Tree:
-        dom = Dom()
+    def Parse(self, html: str) -> DomCreator:
         treeConstructor = TreeConstructor()
-        tokenizer = Tokenizer(html, treeConstructor)
 
+        tokenizer = Tokenizer(html, treeConstructor)
         tokenizer.GenerateAllTokens()
         
-        #tokenizer.PrintList()
-        #treeConstructor.SteppedPrintTree()
-        #treeConstructor.PrintTree()
-    
-        #self.__SteppedParse(html)
-        return treeConstructor.GetTree()
+        domCreator = DomCreator(treeConstructor.GetTree())
+        domObj = domCreator.CreateDOM()
+        return domCreator
 
-    def __SteppedParse(self, html) -> None:
-        treeConstructor = TreeConstructor()
-        tokenizer = Tokenizer(html, treeConstructor)
-        token = {}
-        while(token != None):
-            inp = input()
-            treeConstructor.PrintCurrentTree()
-            token = tokenizer.GenerateNextToken()
+    # def __SteppedParse(self, html) -> None:
+    #     treeConstructor = TreeConstructor()
+    #     tokenizer = Tokenizer(html, treeConstructor)
+    #     token = {}
+    #     while(token != None):
+    #         inp = input()
+    #         treeConstructor.PrintCurrentTree()
+    #         token = tokenizer.GenerateNextToken()
 
-        treeConstructor.PrintTree()
+    #     treeConstructor.PrintTree()

@@ -1,4 +1,5 @@
 #   Other tags will be converted to div
+# (name,canHaveChilds)
 RECOGNIZEDTAGS = [
     ('<html>',True),
     ('<head>',True),

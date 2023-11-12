@@ -1,4 +1,5 @@
 TOKENSDESCRIPTION = [
+    ('root',0),
     ('DOCTYPE',1),
     ('start tag',2),
     ('end tag',3),
