@@ -11,9 +11,11 @@ class Interpreter:
 
         tokenizer = Tokenizer(html, treeConstructor)
         tokenizer.GenerateAllTokens()
-        
+        #tokenizer.PrintList()
+        #treeConstructor.PrintTree()
         domCreator = DomCreator(treeConstructor.GetTree())
         domObj = domCreator.CreateDOM()
+        #domCreator.PrintDom()
         return domCreator
 
     # def __SteppedParse(self, html) -> None:

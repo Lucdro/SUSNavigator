@@ -8,12 +8,16 @@ import re
 #   Tokens => tuple[int, str, dict[str, str] | None] 
 class Tokenizer:
     inputStream: str
+    __noContentTags = [
+        '<br>',
+    ]
     __tokenList: list[tuple[int, str, dict[str, str] | None]] = []
     treeConstructor: TreeConstructor
     tokenWord: int = TokenDescription.GetTokenValue('character')
     tokenTagStart: int = TokenDescription.GetTokenValue('start tag')
     tokenTagEnd: int = TokenDescription.GetTokenValue('end tag')
     selfClosingtag: int  = TokenDescription.GetTokenValue('self closing tag')
+    tokenNoContent: int = TokenDescription.GetTokenValue('no content tag')
     index: int = 0
 
     def __init__(self , html: str, treeConstructor: TreeConstructor) -> None:
@@ -35,11 +39,11 @@ class Tokenizer:
             return None
         #Find the next caracter
         c = self.inputStream[self.index]
-        if c == ' ':
-            while(c == ' ' and self.index < len(self.inputStream)):
+        if c.isspace():
+            while(c.isspace() and self.index < len(self.inputStream)):
                 self.index +=1
                 c = self.inputStream[self.index]
-        if c == ' ':
+        if c.isspace():
             return None
         
         token = c 
@@ -67,7 +71,10 @@ class Tokenizer:
             elif tokenName[len(tokenName)-2] == '/' and not tokenName[1] == '/':
                 tokenType = self.selfClosingtag
             elif tokenName[1] != '/' and not tokenName[len(tokenName)-2] == '/':
-                tokenType = self.tokenTagStart
+                if self.NoContentTag(tokenName):
+                    tokenType = self.tokenNoContent
+                else: 
+                    tokenType = self.tokenTagStart
             else:
                 raise SyntaxError(f'HTML provided has a syntax error at:{self.index}')
             props = self.GetProps(token)
@@ -83,6 +90,9 @@ class Tokenizer:
         #Word element has None in dict arg
         return self.AppendToken((self.tokenWord,token,None))
     
+    def NoContentTag(self, name:str) -> bool:
+        return name in self.__noContentTags
+
     def AppendToken(self, token: tuple[int, str, dict[str, str] | None]) -> tuple[int, str, dict[str, str] | None] :
         self.__tokenList.append(token)
         self.treeConstructor.AddToken(token)
@@ -96,15 +106,15 @@ class Tokenizer:
     
     def PrintList(self) -> None:
         for token in self.__tokenList:
-            print(f'\nType: {TokenDescription.GetTokenDescription(token[0])}\nName: {token[1]}\nProps: {token[2]}')
+            print(f'\nName: {token[1]}\nType: {TokenDescription.GetTokenDescription(token[0])}\nProps: {token[2]}')
 
     def GetProps(self, tag: str) -> dict[str,str]:
-        propsList = re.findall(r'\s+[a-zA-Z0-9_]+=[\"|\']\s*[a-zA-Z0-9_;:]*[\"|\']',tag)
+        propsList = re.findall(r'\s+[a-zA-Z0-9_]+=[\"|\'][^[\"|\']*[\"|\']',tag)
         propsDict = {}
         for prop in propsList:
-            name = re.search(r'[a-zA-Z0-9_]+=[\"|\']',prop)
+            name = re.search(r'[a-zA-Z0-9_-]+=[\"|\']',prop)
             name = '' if name == None else name.group()
-            value = re.search(r'=[\"|\'][a-zA-Z0-9_:;]+[\"|\']',prop)
+            value = re.search(r'=[\"|\'][ a-zA-Z0-9_:;-]+[\"|\']',prop)
             value = '' if value == None else value.group()
             if name != '':
                 name = name[0:len(name)-2]

@@ -7,6 +7,7 @@ class TreeConstructor:
     tokenTagStart: int = TokenDescription.GetTokenValue('start tag')
     tokenTagEnd: int = TokenDescription.GetTokenValue('end tag')
     tokenSelfClsTag: int = TokenDescription.GetTokenValue('self closing tag')
+    tokenNoContent: int = TokenDescription.GetTokenValue('no content tag')
     __treeBuffer: list[Tree] = []
     __tree: Tree = Tree('root', 0)
     __currentTree: Tree = __tree
@@ -33,9 +34,17 @@ class TreeConstructor:
                 raise SyntaxError(f'Tag:{token[1]} was never opened')
         elif token[0] == self.tokenSelfClsTag:
             self.__currentTree.AppendChild(Tree(token[1],token[0],[],token[2]))
+        elif token[0] == self.tokenNoContent:
+            self.__currentTree.AppendChild(self.GetNoContentTree(token))
             #temp.Print()
         #self.__currentTree.Print()
     
+    def GetNoContentTree(self, token: tuple[int, str, dict[str, str] | None]) -> Tree:
+        if token[1] == '<br>':
+            return Tree('\n',self.tokenWord,[],{})
+        else:
+            return Tree('',self.tokenWord,[],{})
+
     def PrintTree(self) -> None:
         self.__tree.Print()
 
