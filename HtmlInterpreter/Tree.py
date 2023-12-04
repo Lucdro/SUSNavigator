@@ -2,18 +2,29 @@ from typing import Self
 
 class Tree:
     __root: str
+    __type: int
     __props: dict[str,str] | None
     __childs: list[Self]
     __childsSpacing: str = '   '
     __hierarchySpacing: str = '\t\t'
-    def __init__(self, value: str, childs: list[Self] = [], props: dict[str,str] | None = None) -> None:
+    def __init__(self, value: str, type: int, childs: list[Self] = [], props: dict[str,str] | None = None) -> None:
         self.__root = value
+        self.__type = type
         self.__props = props
         self.__childs = childs
 
     def AppendChild(self, child: Self) -> Self:
         self.__childs.append(child)
         return child
+    
+    def GetType(self) -> int:
+        return self.__type
+
+    def GetChilds(self) -> list[Self]:
+        return self.__childs
+    
+    def GetProps(self) -> dict[str,str]:
+        return self.__props if self.__props != None else {} 
 
     def Print(self, tabs: str = '') -> None:
         tabs += self.__hierarchySpacing
